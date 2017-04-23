@@ -1,0 +1,139 @@
+<script type="text/javascript" src="https://vk.com/js/api/openapi.js?122"></script>
+
+
+<style>
+    body {
+        background-color: rgb(154, 154, 154);
+    }
+    #homework {
+        margin-top: 5%;
+        margin-left: auto;
+        margin-right: auto;
+        border-radius: 20px;
+        background-color:  #ffffff;
+        width: 620px;
+        height: 490px;
+    }
+    #choiceFriends {
+
+        background-color:  #ff8663;
+        border-radius: 20px 20px 0 0;
+        width: 620px;
+        height: 45px;
+        padding: 0;
+        margin: 0;
+    }
+    #tagP {
+        font-family: Helvetica;
+        color: #ffffff;
+        font-size: 2em; /* Приближение из-за подстановки шрифтов */
+        font-weight: 500;
+        text-align: left;
+        margin: 5px 15px 5px 15px;
+        position: absolute;
+    }
+    .tagDiv {
+        margin: 0;
+        height: 20px;
+        width: 310px;
+        font-weight: bold;
+        background: #ffffff;
+     }
+    .tagPList {
+        margin: 10px 15px 1px 20px;
+        font-family: FiraSans;
+        /*border-bottom: 1px solid darkgray;*/
+        color:  #4f4f4f;
+        font-size: 1.2em;
+        font-weight: 500;
+        text-align: left;
+    }
+    .headerInput {
+        display: inline-block;
+        padding: 0;
+        margin: 0;
+        z-index: 10000;
+        position: absolute;
+        height: 40px;
+        width: 310px;
+        background-color:  #f0f0f0;
+     }
+    .input {
+        width: 285px;
+        height: 20px;
+        padding: 0;
+        margin: 9px;
+        border-radius: 10px;
+        border: 1px solid #ffffff;
+    }
+    .filterFriend {
+        display: inline-block;
+        margin-top: 75px;
+        height: 330px;
+        width: 305px;
+        background: rgba(255, 255, 255);
+        overflow: auto;
+    }
+    #homework button {
+        border-radius: 10px;
+        background-color: #ff8663;
+        width: 87px;
+        height: 30px;
+        margin: 12px 520px;
+        border: 1px solid #ffffff;
+    }
+    .buttonDiv {
+        background-color:  #f0f0f0;
+        width: 620px;
+        height: 55px;
+        border-radius: 0 0 20px 20px;
+    }
+    ::-webkit-scrollbar-button {
+        background-image:url('');
+        background-repeat:no-repeat;
+        width:5px;
+        height:0px;
+    }
+    ::-webkit-scrollbar-thumb {
+        -webkit-border-radius: 2px;
+        border-radius: 2px;
+        height: 80px;
+        background-color:#c4c4c4;
+    }
+    ::-webkit-resizer{
+        background-image:url('');
+        background-repeat:no-repeat;
+        width:4px;
+        height:0px;
+    }
+    ::-webkit-scrollbar{
+        width: 4px;
+    }
+
+
+</style>
+
+<div id="homework">
+    <div id="choiceFriends">
+        <p id="tagP">Виберите друзей</p>
+    </div>
+    <div class="headerInput">
+        <input type="text" id="input-search-leftFriend" class="input">
+        <div class="tagDiv"><p class="tagPList">Ваши друзя</p></div>
+    </div>
+    <div id="myFriends" class="filterFriend">
+        <!-- Друзя добавляються сюда!!! -->
+    </div>
+
+    <div class="headerInput">
+
+        <input type="text" id="input-search-rightFriend" class="input">
+        <div class="tagDiv"><p class="tagPList">Друзя в списке</p></div>
+    </div>
+    <div id="myFriendsList" class="filterFriend">
+        <!-- Друзя  переместить сюда!!! -->
+    </div>
+    <div class="buttonDiv">
+    <button id="button">Сохранить</button>
+    </div>
+</div>
