@@ -98,56 +98,12 @@ let myModule = {
             rightArrayFriend = this.rightFriendList,
             self = myModule,
             item;
-
-        secondList.appendChild(secondListUl);
         //  кнопка сохранения в localStorage
         buttonSave.addEventListener('click', function () {
             localStorage.rightFriends = JSON.stringify({rightArrayFriend});
             localStorage.leftFriends = JSON.stringify({leftArrayFriend});
         });
-        //  обработчик на перемещения с первого в второй список по клику
-        firstListUl.addEventListener('click', (e) => {
-            let elem = e.target.parentNode;
-            if (e.target.tagName == 'SPAN') {
-                let icon = e.target,
-                    idFriendSecond = icon.getAttribute('data-id');
-
-                firstListUl.removeChild(elem);
-                secondListUl.appendChild(elem);
-
-                icon.className = '';
-                icon.className = 'icon-cross';
-
-                for (let n = 0; n < leftArrayFriend.length; n++) {
-                    if (leftArrayFriend[n].id == idFriendSecond) {
-                        rightArrayFriend.push(leftArrayFriend[n]);
-                        leftArrayFriend.splice(n, 1);
-                    }
-                }
-            }
-        });
-        //  обработчик на перемещения с второго в первый список по клику
-        secondListUl.addEventListener('click', (e) => {
-            let elem = e.target.parentNode;
-            if (e.target.tagName == 'SPAN') {
-                let icon = e.target,
-                    idFriend = icon.getAttribute('data-id');
-
-                secondListUl.removeChild(elem);
-                firstListUl.appendChild(elem);
-
-                icon.className = '';
-                icon.className = 'icon-plus';
-
-                for (var i = 0; i < rightArrayFriend.length; i++) {
-                    if (rightArrayFriend[i].id == idFriend) {
-                        leftArrayFriend.push(rightArrayFriend[i]);
-                        rightArrayFriend.splice(i, 1);
-                    }
-                }
-            }
-        });
-        //  обработчик на Input, для поиска в первому списку
+         // обработчик на Input, для поиска в первому списку
         firstInput.addEventListener('keyup', () => {
             let filtrationFirstList = [],
                 value = firstInput.value.trim();
@@ -160,7 +116,6 @@ let myModule = {
             }
             firstList.innerHTML = self.createFriendsDiv(filtrationFirstList);
         });
-
         //  обработчик на Input, для поиска в второму списку
         secondInput.addEventListener('keyup', () => {
             let filtrationSecondList = [],
@@ -174,13 +129,56 @@ let myModule = {
             }
             secondList.innerHTML = self.createRightFriendsDiv(filtrationSecondList);
         });
+        //  обработчик на перемещения с первого в второй список по клику
+        firstListUl.addEventListener('click', (e) => {
+                let elem = e.target.parentNode;
+                console.log('!!!!first');
+                if (e.target.tagName == 'SPAN') {
+                    let icon = e.target,
+                        idFriendSecond = icon.getAttribute('data-id');
+
+                    firstListUl.removeChild(elem);
+                    secondListUl.appendChild(elem);
+
+                    icon.className = '';
+                    icon.className = 'icon-cross';
+
+                    for (let n = 0; n < leftArrayFriend.length; n++) {
+                        if (leftArrayFriend[n].id == idFriendSecond) {
+                            rightArrayFriend.push(leftArrayFriend[n]);
+                            leftArrayFriend.splice(n, 1);
+                        }
+                    }
+                }
+            });
+        //  обработчик на перемещения с второго в первый список по клику
+        secondListUl.addEventListener('click', (e) => {
+                let elem = e.target.parentNode;
+
+                console.log('&&&&');
+                if (e.target.tagName == 'SPAN') {
+                    let icon = e.target,
+                        idFriend = icon.getAttribute('data-id');
+
+                    secondListUl.removeChild(elem);
+                    firstListUl.appendChild(elem);
+
+                    icon.className = '';
+                    icon.className = 'icon-plus';
+
+                    for (var i = 0; i < rightArrayFriend.length; i++) {
+                        if (rightArrayFriend[i].id == idFriend) {
+                            leftArrayFriend.push(rightArrayFriend[i]);
+                            rightArrayFriend.splice(i, 1);
+                        }
+                    }
+                }
+            });
 
         firstList.addEventListener('dragstart', dragStart);
         secondList.addEventListener('dragstart', dragStart);
         //  D&D HTML 5, функция отвечает за клик по элементу и его захват
         function dragStart(e) {
-            firstList.removeEventListener('dragstart', dragStart);
-            secondList.removeEventListener('dragstart', dragStart);
 
             firstList.addEventListener('dragenter', dragEnter);
             secondList.addEventListener('dragenter', dragEnter);
@@ -203,12 +201,13 @@ let myModule = {
         }
         //  D&D HTML 5, функция отвечает за drop элемента
         function dropElement(e) {
-            let spanItem = item.lastElementChild;
+            let spanItem = item.lastElementChild,
+                dragEnd = e.target.closest('UL');
 
             firstList.addEventListener('dragstart', dragStart);
             secondList.addEventListener('dragstart', dragStart);
 
-            if (e.target === secondListUl || e.target.parentNode === secondListUl || e.target.parentNode.parentNode === secondListUl) {
+            if (dragEnd.getAttribute('id') === 'secondFriendList') {
                 secondListUl.appendChild(item);
                 spanItem.className = '';
                 spanItem.className = 'icon-cross';
@@ -221,7 +220,7 @@ let myModule = {
                     }
                 }
             }
-            else if (e.target === firstListUl || e.target.parentNode === firstListUl || e.target.parentNode.parentNode === firstListUl) {
+            else if (dragEnd.getAttribute('id') === 'firstFriendList') {
                 firstListUl.appendChild(item);
                 spanItem.className = '';
                 spanItem.className = 'icon-plus';
