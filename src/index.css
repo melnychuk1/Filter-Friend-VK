@@ -23,6 +23,7 @@ body {
 
 .friend {
     display: block;
+    border-radius: 5px;
     margin: 0 5px 0 20px;
     width: 250px;
     height: 70px;

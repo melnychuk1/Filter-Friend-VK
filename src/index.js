@@ -1,13 +1,12 @@
 require('./index.css');
 
-
-var myModule = {
-    friendsArray: undefined,
-    leftFriendList: undefined,
-    rightFriendList: undefined,
+let myModule = {
+    leftFriendList: undefined,      //  левый массив объектов из друзей
+    rightFriendList: undefined,     // правый массив объектов из друзей
 
     init: function () {
-        var self = this;
+        let self = this;
+
         function login() {
             return new Promise((resolve, reject) => {
                 VK.init({
@@ -22,35 +21,34 @@ var myModule = {
                 });
             });
         }
-
+        // функциия получение массива из лбъектов друзей
         function callAPI(method, params) {
             return new Promise((resolve, reject) => {
                 let firstList = document.getElementById('myFriends'),
                     secondList = document.getElementById('myFriendsList');
                 if (localStorage.getItem('leftFriends') || localStorage.getItem('rightFriends')) {
-                    var leftFriend = JSON.parse(localStorage.getItem('leftFriends'));
-                    var rightFriend = JSON.parse(localStorage.getItem('rightFriends'));
+                    let leftFriend = JSON.parse(localStorage.getItem('leftFriends'));
+                    let rightFriend = JSON.parse(localStorage.getItem('rightFriends'));
 
-                    leftFriend = leftFriend.leftArrayFriend.items;
+                    leftFriend = leftFriend.leftArrayFriend;
                     rightFriend = rightFriend.rightArrayFriend;
 
                     self.leftFriendList = leftFriend;
                     self.rightFriendList = rightFriend;
 
-                    firstList.innerHTML = self.createFriendsDiv(leftFriend);
-                    secondList.innerHTML = self.createFriendsDiv(rightFriend);
-
+                    firstList.innerHTML = myModule.createFriendsDiv(leftFriend);
+                    secondList.innerHTML = myModule.createRightFriendsDiv(rightFriend);
                     if (leftFriend || rightFriend) {
                         resolve();
                     }
+
                 } else {
                     VK.api(method, params, function (result) {
                         if (result.error) {
                             reject();
                         } else {
-                            resolve(result.response);
-                            self.friendsArray = result.response;
-                            self.leftFriendList = result.response;
+                            resolve(result.response.items);
+                            self.leftFriendList = result.response.items.sort(self.compare);
                             self.rightFriendList = [];
                         }
                     });
@@ -58,53 +56,128 @@ var myModule = {
             });
         }
 
-        var friendsList = document.querySelector('#myFriends');
-
+        let friendsList = document.querySelector('#myFriends'),
+            secondList = document.querySelector('#myFriendsList');
+        //  последовательное виполнение кода
         login()
             .then(() => callAPI('friends.get', {v: 5.63, fields: ['photo_100']}))
             .then(function (result) {
-                friendsList.innerHTML = self.createFriendsDiv(result.items);
+                if (!localStorage.length) {
+                    friendsList.innerHTML = self.createFriendsDiv(result);
+                    secondList.innerHTML = self.createRightFriendsDiv(self.rightFriendList);
+                }
                 self.setListeners();
-                self.addPlusFriend();
             })
-            .catch(() => console.log('всё плохо'));
+            .catch(() => console.log('Все плохо!!!!'));
     },
-
-    createFriendsDiv: function (leftFriendList, rightFriendList) {
-        var templateFn = require('../friend-template.hbs');
-
-        this.updateFriend();
+    //  функции рисовки друзей
+    createFriendsDiv: function (leftFriendList) {
+        let templateFn = require('../friend-template.hbs');
 
         return templateFn({
-            leftFriend: leftFriendList,
+            leftFriend: leftFriendList
+        });
+    },
+    createRightFriendsDiv: function (rightFriendList) {
+        let templateFn = require('../friend-template-second-list.hbs');
+
+        return templateFn({
             rightFriend: rightFriendList
         });
     },
-
+    // Функция которая отвечает за обработчики и D&D
     setListeners: function () {
         let firstList = document.getElementById('myFriends'),
             secondList = document.getElementById('myFriendsList'),
-            list = document.getElementById('secondFriendList'),
-            item,
+            firstListUl = document.getElementById('firstFriendList'),
+            secondListUl = document.getElementById('secondFriendList'),
             firstInput = document.querySelector('#input-search-leftFriend'),
             secondInput = document.querySelector('#input-search-rightFriend'),
+            buttonSave = document.querySelector('#button'),
             leftArrayFriend = this.leftFriendList,
             rightArrayFriend = this.rightFriendList,
-            buttonSave = document.querySelector('#button');
+            self = myModule,
+            item;
 
-        secondList.appendChild(list);
-
+        secondList.appendChild(secondListUl);
+        //  кнопка сохранения в localStorage
         buttonSave.addEventListener('click', function () {
             localStorage.rightFriends = JSON.stringify({rightArrayFriend});
             localStorage.leftFriends = JSON.stringify({leftArrayFriend});
         });
+        //  обработчик на перемещения с первого в второй список по клику
+        firstListUl.addEventListener('click', (e) => {
+            let elem = e.target.parentNode;
+            if (e.target.tagName == 'SPAN') {
+                let icon = e.target,
+                    idFriendSecond = icon.getAttribute('data-id');
 
-        firstInput.addEventListener('keyup', this.filtration);
-        secondInput.addEventListener('keyup', this.filtration);
+                firstListUl.removeChild(elem);
+                secondListUl.appendChild(elem);
+
+                icon.className = '';
+                icon.className = 'icon-cross';
+
+                for (let n = 0; n < leftArrayFriend.length; n++) {
+                    if (leftArrayFriend[n].id == idFriendSecond) {
+                        rightArrayFriend.push(leftArrayFriend[n]);
+                        leftArrayFriend.splice(n, 1);
+                    }
+                }
+            }
+        });
+        //  обработчик на перемещения с второго в первый список по клику
+        secondListUl.addEventListener('click', (e) => {
+            let elem = e.target.parentNode;
+            if (e.target.tagName == 'SPAN') {
+                let icon = e.target,
+                    idFriend = icon.getAttribute('data-id');
+
+                secondListUl.removeChild(elem);
+                firstListUl.appendChild(elem);
+
+                icon.className = '';
+                icon.className = 'icon-plus';
+
+                for (var i = 0; i < rightArrayFriend.length; i++) {
+                    if (rightArrayFriend[i].id == idFriend) {
+                        leftArrayFriend.push(rightArrayFriend[i]);
+                        rightArrayFriend.splice(i, 1);
+                    }
+                }
+            }
+        });
+        //  обработчик на Input, для поиска в первому списку
+        firstInput.addEventListener('keyup', () => {
+            let filtrationFirstList = [],
+                value = firstInput.value.trim();
+
+            for (let i = 0; i < leftArrayFriend.length; i++) {
+                let name = leftArrayFriend[i].first_name + ' ' + leftArrayFriend[i].last_name;
+                if (self.isMatching(name, value)) {
+                    filtrationFirstList.push(leftArrayFriend[i]);
+                }
+            }
+            firstList.innerHTML = self.createFriendsDiv(filtrationFirstList);
+        });
+
+        //  обработчик на Input, для поиска в второму списку
+        secondInput.addEventListener('keyup', () => {
+            let filtrationSecondList = [],
+                value = secondInput.value.trim();
+
+            for (let i = 0; i < rightArrayFriend.length; i++) {
+                let name = rightArrayFriend[i].first_name + ' ' + rightArrayFriend[i].last_name;
+                if (self.isMatching(name, value)) {
+                    filtrationSecondList.push(rightArrayFriend[i]);
+                }
+            }
+            secondList.innerHTML = self.createRightFriendsDiv(filtrationSecondList);
+        });
 
         firstList.addEventListener('dragstart', dragStart);
         secondList.addEventListener('dragstart', dragStart);
-
+        //  D&D HTML 5, функция отвечает за клик по элементу и его захват
         function dragStart(e) {
             firstList.removeEventListener('dragstart', dragStart);
             secondList.removeEventListener('dragstart', dragStart);
@@ -128,11 +201,9 @@ var myModule = {
         function dragOver(e) {
             e.preventDefault();
         }
-
+        //  D&D HTML 5, функция отвечает за drop элемента
         function dropElement(e) {
-            let firstListUl = document.getElementById('firstFriendList'),
-                secondListUl = document.getElementById('secondFriendList'),
-                spanItem = item.lastElementChild;
+            let spanItem = item.lastElementChild;
 
             firstList.addEventListener('dragstart', dragStart);
             secondList.addEventListener('dragstart', dragStart);
@@ -141,12 +212,12 @@ var myModule = {
                 secondListUl.appendChild(item);
                 spanItem.className = '';
                 spanItem.className = 'icon-cross';
-                var idFriendSecond = spanItem.getAttribute('data-id');
+                let idFriendSecond = spanItem.getAttribute('data-id');
 
-                for (var n = 0; n < leftArrayFriend.items.length; n++) {
-                    if (leftArrayFriend.items[n].id == idFriendSecond) {
-                        rightArrayFriend.push(leftArrayFriend.items[n]);
-                        leftArrayFriend.items.splice(n, 1);
+                for (let n = 0; n < leftArrayFriend.length; n++) {
+                    if (leftArrayFriend[n].id == idFriendSecond) {
+                        rightArrayFriend.push(leftArrayFriend[n]);
+                        leftArrayFriend.splice(n, 1);
                     }
                 }
             }
@@ -154,125 +225,31 @@ var myModule = {
                 firstListUl.appendChild(item);
                 spanItem.className = '';
                 spanItem.className = 'icon-plus';
-                var idFriend = spanItem.getAttribute('data-id');
+                let idFriend = spanItem.getAttribute('data-id');
 
-                for (var i = 0; i < rightArrayFriend.length; i++) {
+                for (let i = 0; i < rightArrayFriend.length; i++) {
                     if (rightArrayFriend[i].id == idFriend) {
-                        leftArrayFriend.items.push(rightArrayFriend[i]);
+                        leftArrayFriend.push(rightArrayFriend[i]);
                         rightArrayFriend.splice(i, 1);
-
                     }
                 }
             }
         }
-},
-
-    addPlusFriend: function () {
-    var firstListUl = document.getElementById('firstFriendList'),
-        secondListUl = document.getElementById('secondFriendList'),
-        leftArrayFriend = this.leftFriendList,
-        rightArrayFriend = this.rightFriendList;
-
-    firstListUl.addEventListener('click', function (e) {
-        var idFriend = e.target.getAttribute('data-id'),
-            el = e.target.parentNode,
-            icon = e.target;
-
-        for (var i = 0; i < leftArrayFriend.items.length; i++) {
-            if (leftArrayFriend.items[i].id == idFriend) {
-                rightArrayFriend.push(leftArrayFriend.items[i]);
-                leftArrayFriend.items.splice(i, 1);
-            }
-        }
-
-        if (e.target.tagName === 'SPAN') {
-            firstListUl.removeChild(el);
-            secondListUl.appendChild(el);
-            icon.className = '';
-            icon.className = 'icon-cross';
-        }
-    });
-
-    secondListUl.addEventListener('click', function (e) {
-        var idFriendSecond = e.target.getAttribute('data-id'),
-            elem = e.target.parentNode,
-            icon = e.target;
-
-        for (var i = 0; i < rightArrayFriend.length; i++) {
-            if (rightArrayFriend[i].id == idFriendSecond) {
-                leftArrayFriend.items.push(rightArrayFriend[i]);
-                rightArrayFriend.splice(i, 1);
-            }
-        }
-
-        if (e.target.tagName === 'SPAN') {
-            secondListUl.removeChild(elem);
-            firstListUl.appendChild(elem);
-            icon.className = '';
-            icon.className = 'icon-plus';
-        }
-    });
-},
-
-    compare: function (a, b) {
-    if (a.last_name < b.last_name) return -1;
-    if (a.last_name > b.last_name) return 1;
-},
-
-    updateFriend: function () {
-        let updateLeftFriend = this.leftFriendList.items,
-            updateRightFriend = this.rightFriendList,
-            self = myModule;
-
-        if (updateRightFriend) {
-            updateLeftFriend.sort(self.compare);
-            updateRightFriend.sort(self.compare);
-        } else {
-            updateLeftFriend.sort(self.compare);
-        }
     },
-
-    filtration: function () {
-        let self = myModule,
-            firstList = document.getElementById('myFriends'),
-            secondList = document.getElementById('myFriendsList'),
-            leftFriendsArray = self.leftFriendList.items,
-            rightFriendsArray = self.rightFriendList,
-            filtrationLeftList = [],
-            filtrationRightList = [],
-            value = this.value.trim(),
-            firstInput = document.getElementById('input-search-leftFriend'),
-            secondInput = document.getElementById('input-search-rightFriend');
-
-        if (firstInput.value) {
-            for (let i = 0; i < leftFriendsArray.length; i++) {
-                let name = leftFriendsArray[i].last_name;
-                if (isMatching(name, value)) {
-                    filtrationLeftList.push(leftFriendsArray[i]);
-                }
-            }
-            firstList.innerHTML = self.createFriendsDiv(filtrationLeftList);
-            filtrationLeftList = [];
+    //  функция каторая ищит строку в строке
+    isMatching: function(full, chunk) {
+        let str = full.toLowerCase(),
+            substr = chunk.toLowerCase();
+        if (str.indexOf(substr) + 1) {
+            return true;
         }
-        else if (secondInput.value) {
-            for (let i = 0; i < rightFriendsArray.length; i++) {
-                let name = rightFriendsArray [i].last_name;
-                if (isMatching(name, value)) {
-                    filtrationRightList.push(rightFriendsArray[i]);
-                }
-            }
-            secondList.innerHTML = self.createFriendsDiv(filtrationRightList);
-            filtrationRightList = [];
-        }
-
-        function isMatching(full, chunk) {
-            let str = full.toLowerCase(),
-                substr = chunk.toLowerCase();
-            if (str.indexOf(substr) + 1) {
-                return true;
-            }
-            return false;
-        }
+        return false;
+    },
+    //  функция фильтрации для загрузившегося списка
+    compare: function (a, b) {
+        if (a.last_name < b.last_name) return -1;
+        if (a.last_name > b.last_name) return 1;
     }
 };
+
 window.onload = myModule.init();

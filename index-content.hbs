@@ -61,10 +61,11 @@
     .input {
         width: 285px;
         height: 20px;
-        padding: 0;
         margin: 9px;
         border-radius: 10px;
         border: 1px solid #ffffff;
+        padding-left: 10px;
+        outline: 0;
     }
     .filterFriend {
         display: inline-block;
@@ -73,6 +74,7 @@
         width: 305px;
         background: rgba(255, 255, 255);
         overflow: auto;
+        overflow-x: hidden;
     }
     #homework button {
         border-radius: 10px;
@@ -81,6 +83,7 @@
         height: 30px;
         margin: 12px 520px;
         border: 1px solid #ffffff;
+        outline: 0;
     }
     .buttonDiv {
         background-color:  #f0f0f0;
@@ -118,7 +121,7 @@
         <p id="tagP">Виберите друзей</p>
     </div>
     <div class="headerInput">
-        <input type="text" id="input-search-leftFriend" class="input">
+        <input type="search" id="input-search-leftFriend" class="input" placeholder="Начните вводьть имя друга" value="">
         <div class="tagDiv"><p class="tagPList">Ваши друзя</p></div>
     </div>
     <div id="myFriends" class="filterFriend">
@@ -127,7 +130,7 @@
 
     <div class="headerInput">
 
-        <input type="text" id="input-search-rightFriend" class="input">
+        <input type="search" id="input-search-rightFriend" class="input" placeholder="Начните вводьть имя друга" value="">
         <div class="tagDiv"><p class="tagPList">Друзя в списке</p></div>
     </div>
     <div id="myFriendsList" class="filterFriend">
