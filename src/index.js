@@ -1,8 +1,8 @@
 require('./index.css');
 
 let myModule = {
-    leftFriendList: undefined,      //  левый массив объектов друзей
-    rightFriendList: undefined,     // правый массив объектов друзей
+    leftFriendList: undefined,      //  левый массив объектов из друзей
+    rightFriendList: undefined,     // правый массив объектов из друзей
 
     init: function () {
         let self = this;
@@ -106,11 +106,11 @@ let myModule = {
         });
          // обработчик на Input, для поиска в первому списку
         firstInput.addEventListener('keyup', () => {
-            self.filtration(firstList, leftArrayFriend);
+            self.filtration(firstList, firstListUl, firstInput);
         });
 
         secondInput.addEventListener('keyup', () => {
-            self.filtration(secondList, rightArrayFriend)
+            self.filtration(secondList, secondListUl, secondInput)
         });
 
         homework.addEventListener('click', (e) => {
@@ -210,31 +210,24 @@ let myModule = {
         }
     },
     //  Функция поиска в списку
-    filtration: function (list, arrayFriends) {
-        let filtrationList = [],
-            value,
-            create,
-            firstInput = document.querySelector('#input-search-leftFriend'),
-            secondInput = document.querySelector('#input-search-rightFriend');
+    filtration: function (list, arrayFriends, input) {
+        let filtrationFirstList = [],
+            value = input.value.trim();
 
-        if (firstInput.value) {
-            value = firstInput.value.trim();
-            create = myModule.createFriendsDiv;
-        }
-        if (secondInput.value) {
-            value = secondInput.value.trim();
-            create = myModule.createRightFriendsDiv;
-        }
-
-        for (let i = 0; i < arrayFriends.length; i++) {
-            let name = arrayFriends[i].first_name + ' ' + arrayFriends[i].last_name;
+        for (let i = 0; i < arrayFriends.children.length; i++) {
+            let name = arrayFriends.children[i].textContent;
             if (myModule.isMatching(name, value)) {
-                filtrationList.push(arrayFriends[i]);
+                arrayFriends.children[i].style.display = 'block'
+            }
+
+            for (let i = 0; i < arrayFriends.children.length; i++) {
+                let name = arrayFriends.children[i].textContent;
+                if (!myModule.isMatching(name, value)) {
+                    arrayFriends.children[i].style.display = 'none'
+                }
             }
         }
-        list.innerHTML = create(filtrationList);
     },
-
     isMatching: function(full, chunk) {
         let str = full.toLowerCase(),
             substr = chunk.toLowerCase();
@@ -247,7 +240,8 @@ let myModule = {
     compare: function (a, b) {
         if (a.last_name < b.last_name) return -1;
         if (a.last_name > b.last_name) return 1;
-    }
+    },
+
 };
 
 window.onload = myModule.init();
